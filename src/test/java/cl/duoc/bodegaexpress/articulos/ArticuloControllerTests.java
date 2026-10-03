@@ -2,6 +2,10 @@ package cl.duoc.bodegaexpress.articulos;
 
 import cl.duoc.bodegaexpress.articulos.controller.ArticuloController;
 import cl.duoc.bodegaexpress.articulos.model.Articulo;
+import cl.duoc.bodegaexpress.articulos.model.HistorialArticulo;
+import cl.duoc.bodegaexpress.articulos.model.HistorialArticulo.Operacion;
+import cl.duoc.bodegaexpress.articulos.repository.HistorialArticuloRepository;
+import org.mockito.ArgumentCaptor;
 import cl.duoc.bodegaexpress.articulos.repository.ArticuloRepository;
 import cl.duoc.bodegaexpress.articulos.service.ArticuloService;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class ArticuloControllerTests {
     private ArticuloRepository repository;
+    private HistorialArticuloRepository historialRepository;
     private MockMvc mvc;
     private Articulo articulo;
     private static final String BODY = """
@@ -31,8 +36,9 @@ class ArticuloControllerTests {
     @BeforeEach
     void configurar() {
         repository = mock(ArticuloRepository.class);
+        historialRepository = mock(HistorialArticuloRepository.class);
         mvc = MockMvcBuilders.standaloneSetup(
-                new ArticuloController(new ArticuloService(repository))).build();
+                new ArticuloController(new ArticuloService(repository, historialRepository))).build();
         articulo = new Articulo(1L, "Caja", "Caja mediana", new BigDecimal("2500.50"), 10);
     }
 
@@ -44,6 +50,7 @@ class ArticuloControllerTests {
                 .andExpect(jsonPath("$[0].nombre").value("Caja"));
         mvc.perform(get("/api/articulos/1")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.stock").value(10));
+        verifyNoInteractions(historialRepository);
     }
 
     @Test
@@ -61,6 +68,7 @@ class ArticuloControllerTests {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "http://localhost/api/articulos/1"))
                 .andExpect(jsonPath("$.id").value(1));
+        verificarHistorial(Operacion.CREACION, "Caja", 10);
     }
 
     @Test
@@ -74,6 +82,7 @@ class ArticuloControllerTests {
                 .andExpect(jsonPath("$.descripcion").value("Bolsa mediana"))
                 .andExpect(jsonPath("$.precio").value(100.25))
                 .andExpect(jsonPath("$.stock").value(3));
+        verificarHistorial(Operacion.ACTUALIZACION, "Bolsa", 3);
     }
 
     @Test
@@ -81,6 +90,7 @@ class ArticuloControllerTests {
         when(repository.findById(1L)).thenReturn(Optional.of(articulo));
         mvc.perform(delete("/api/articulos/1")).andExpect(status().isNoContent());
         verify(repository).delete(articulo);
+        verificarHistorial(Operacion.ELIMINACION, "Caja", 10);
     }
 
     @Test
@@ -91,6 +101,7 @@ class ArticuloControllerTests {
         mvc.perform(delete("/api/articulos/99")).andExpect(status().isNotFound());
         verify(repository, never()).save(any());
         verify(repository, never()).delete(any(Articulo.class));
+        verifyNoInteractions(historialRepository);
     }
 
     @Test
@@ -103,6 +114,17 @@ class ArticuloControllerTests {
             mvc.perform(put("/api/articulos/1").contentType(MediaType.APPLICATION_JSON).content(body))
                     .andExpect(status().isBadRequest());
         }
-        verifyNoInteractions(repository);
+        verifyNoInteractions(repository, historialRepository);
+    }
+
+    private void verificarHistorial(Operacion operacion, String nombre, int stock) {
+        ArgumentCaptor<HistorialArticulo> captor = ArgumentCaptor.forClass(HistorialArticulo.class);
+        verify(historialRepository).save(captor.capture());
+        HistorialArticulo registro = captor.getValue();
+        assertEquals(1L, registro.getArticuloId());
+        assertEquals(operacion, registro.getOperacion());
+        assertEquals(nombre, registro.getNombre());
+        assertEquals(stock, registro.getStock());
+        assertNotNull(registro.getFecha());
     }
 }

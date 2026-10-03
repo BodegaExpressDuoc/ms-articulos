@@ -1,6 +1,9 @@
 package cl.duoc.bodegaexpress.articulos.service;
 
 import cl.duoc.bodegaexpress.articulos.model.Articulo;
+import cl.duoc.bodegaexpress.articulos.model.HistorialArticulo;
+import cl.duoc.bodegaexpress.articulos.model.HistorialArticulo.Operacion;
+import cl.duoc.bodegaexpress.articulos.repository.HistorialArticuloRepository;
 import cl.duoc.bodegaexpress.articulos.repository.ArticuloRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
@@ -13,9 +16,12 @@ import java.util.List;
 public class ArticuloService {
 
     private final ArticuloRepository articuloRepository;
+    private final HistorialArticuloRepository historialRepository;
 
-    public ArticuloService(ArticuloRepository articuloRepository) {
+    public ArticuloService(ArticuloRepository articuloRepository,
+                           HistorialArticuloRepository historialRepository) {
         this.articuloRepository = articuloRepository;
+        this.historialRepository = historialRepository;
     }
 
     public List<Articulo> listarArticulos() {
@@ -34,7 +40,9 @@ public class ArticuloService {
         nuevoArticulo.setDescripcion(articulo.getDescripcion());
         nuevoArticulo.setPrecio(articulo.getPrecio());
         nuevoArticulo.setStock(articulo.getStock());
-        return articuloRepository.save(nuevoArticulo);
+        Articulo creado = articuloRepository.save(nuevoArticulo);
+        historialRepository.save(new HistorialArticulo(creado, Operacion.CREACION));
+        return creado;
     }
 
     @Transactional
@@ -44,12 +52,15 @@ public class ArticuloService {
         articuloExistente.setDescripcion(articulo.getDescripcion());
         articuloExistente.setPrecio(articulo.getPrecio());
         articuloExistente.setStock(articulo.getStock());
-        return articuloRepository.save(articuloExistente);
+        Articulo actualizado = articuloRepository.save(articuloExistente);
+        historialRepository.save(new HistorialArticulo(actualizado, Operacion.ACTUALIZACION));
+        return actualizado;
     }
 
     @Transactional
     public void eliminarArticulo(Long id) {
         Articulo articulo = buscarPorId(id);
         articuloRepository.delete(articulo);
+        historialRepository.save(new HistorialArticulo(articulo, Operacion.ELIMINACION));
     }
 }
