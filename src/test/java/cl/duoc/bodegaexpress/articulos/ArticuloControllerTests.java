@@ -1,6 +1,7 @@
 package cl.duoc.bodegaexpress.articulos;
 
 import cl.duoc.bodegaexpress.articulos.controller.ArticuloController;
+import cl.duoc.bodegaexpress.articulos.exception.ManejadorErrores;
 import cl.duoc.bodegaexpress.articulos.model.Articulo;
 import cl.duoc.bodegaexpress.articulos.model.HistorialArticulo;
 import cl.duoc.bodegaexpress.articulos.model.HistorialArticulo.Operacion;
@@ -38,7 +39,9 @@ class ArticuloControllerTests {
         repository = mock(ArticuloRepository.class);
         historialRepository = mock(HistorialArticuloRepository.class);
         mvc = MockMvcBuilders.standaloneSetup(
-                new ArticuloController(new ArticuloService(repository, historialRepository))).build();
+                new ArticuloController(new ArticuloService(repository, historialRepository)))
+                .setControllerAdvice(new ManejadorErrores())
+                .build();
         articulo = new Articulo(1L, "Caja", "Caja mediana", new BigDecimal("2500.50"), 10);
     }
 

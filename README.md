@@ -57,13 +57,14 @@ entorno. Para desarrollo local se usa un archivo `.env`, excluido de Git:
 copy .env.example .env
 ```
 
-Editar `.env` y completar al menos `ARTICULOS_DB_PASSWORD`:
+Editar `.env` y completar `ARTICULOS_DB_USERNAME` y `ARTICULOS_DB_PASSWORD`:
 
 | Variable | Obligatoria | Valor por defecto | Descripción |
 |---|---|---|---|
 | `ARTICULOS_DB_URL` | No | `jdbc:postgresql://localhost:5432/bodega_articulos` | URL JDBC de la base de datos |
-| `ARTICULOS_DB_USERNAME` | No | `postgres` | Usuario de PostgreSQL |
+| `ARTICULOS_DB_USERNAME` | **Sí** | — | Usuario de PostgreSQL |
 | `ARTICULOS_DB_PASSWORD` | **Sí** | — | Contraseña de PostgreSQL |
+| `ARTICULOS_ADDRESS` | No | `127.0.0.1` | Dirección de red en la que escucha el servicio |
 | `ARTICULOS_PORT` | No | `8082` | Puerto HTTP del servicio |
 
 El archivo se escribe con el formato `NOMBRE=valor`, sin comillas. Spring Boot lo
@@ -137,6 +138,25 @@ POST y PUT requieren `Content-Type: application/json`:
 - El precio y el stock no pueden ser negativos; el precio admite hasta dos decimales.
 - El `id` lo genera la base de datos.
 - Los datos inválidos devuelven `400 Bad Request`.
+
+### Formato de errores
+
+Los errores se devuelven en formato
+[ProblemDetail (RFC 9457)](https://www.rfc-editor.org/rfc/rfc9457), con el
+código HTTP y un mensaje descriptivo. En los errores de validación se indica cada campo rechazado:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Los datos enviados no son válidos",
+  "instance": "/api/articulos",
+  "errores": {
+    "nombre": "El nombre es obligatorio"
+  }
+}
+```
 
 ### Historial
 
