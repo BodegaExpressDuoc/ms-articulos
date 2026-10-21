@@ -1,0 +1,211 @@
+{
+  "info": {
+    "name": "ms-articulos",
+    "description": "Pruebas de la API de ms-articulos. Ejecutar en orden (Collection Runner): las peticiones guardan el id del artículo creado en una variable de la colección.\n\nRequiere el servicio en ejecución en {{baseUrl}}. Crea un artículo de prueba y lo elimina al final; las operaciones quedan registradas en la tabla historial_articulos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Crear artículo",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/articulos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Caja\",\n  \"descripcion\": \"Caja mediana de cartón\",\n  \"precio\": 2500.5,\n  \"stock\": 10\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 201 Created', () => pm.response.to.have.status(201));",
+              "const articulo = pm.response.json();",
+              "pm.test('Devuelve el id generado', () => pm.expect(articulo.id).to.be.a('number'));",
+              "pm.test('Incluye la cabecera Location', () => pm.response.to.have.header('Location'));",
+              "pm.collectionVariables.set('articuloId', articulo.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Listar artículos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/articulos"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('Devuelve una lista', () => pm.expect(pm.response.json()).to.be.an('array'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Obtener artículo por id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/articulos/{{articuloId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('Devuelve el artículo creado', () => pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get('articuloId'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Actualizar artículo",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/articulos/{{articuloId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Caja\",\n  \"descripcion\": \"Caja mediana de cartón\",\n  \"precio\": 2500.5,\n  \"stock\": 25\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('Actualiza el stock', () => pm.expect(pm.response.json().stock).to.eql(25));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Crear artículo con datos inválidos",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/articulos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"\",\n  \"descripcion\": \"Caja mediana de cartón\",\n  \"precio\": -100,\n  \"stock\": 10\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 400 Bad Request', () => pm.response.to.have.status(400));",
+              "pm.test('Error en formato ProblemDetail', () => pm.expect(pm.response.json()).to.have.property('detail'));",
+              "const errores = pm.response.json().errores;",
+              "pm.test('Indica el error del nombre', () => pm.expect(errores).to.have.property('nombre'));",
+              "pm.test('Indica el error del precio', () => pm.expect(errores).to.have.property('precio'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Obtener artículo inexistente",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/articulos/999999"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 404 Not Found', () => pm.response.to.have.status(404));",
+              "pm.test('Error en formato ProblemDetail', () => pm.expect(pm.response.json()).to.have.property('detail'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Eliminar artículo",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/api/articulos/{{articuloId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 204 No Content', () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Obtener artículo eliminado",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/articulos/{{articuloId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 404 Not Found', () => pm.response.to.have.status(404));",
+              "pm.test('Error en formato ProblemDetail', () => pm.expect(pm.response.json()).to.have.property('detail'));"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "articuloId",
+      "value": ""
+    }
+  ]
+}
