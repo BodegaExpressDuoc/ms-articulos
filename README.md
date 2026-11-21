@@ -97,7 +97,7 @@ O con el `.jar` generado:
 java -jar target/ms-articulos.jar
 ```
 
-El servicio queda disponible en `http://localhost:8082/api/articulos`.
+El servicio queda disponible en `http://localhost:8082/api/v1/articulos`.
 Para detenerlo, usar `Ctrl+C`.
 
 ## Estructura del proyecto
@@ -113,15 +113,15 @@ src/main/java/cl/duoc/bodegaexpress/articulos/
 
 ## API
 
-URL base: `http://localhost:8082/api/articulos`
+URL base: `http://localhost:8082/api/v1/articulos`
 
 | Método | Ruta | Descripción | Respuesta |
 |---|---|---|---|
-| GET | `/api/articulos` | Lista todos los artículos | `200` |
-| GET | `/api/articulos/{id}` | Obtiene un artículo | `200`; `404` si no existe |
-| POST | `/api/articulos` | Crea un artículo | `201` con cabecera `Location` |
-| PUT | `/api/articulos/{id}` | Reemplaza los datos de un artículo | `200`; `404` si no existe |
-| DELETE | `/api/articulos/{id}` | Elimina un artículo | `204`; `404` si no existe |
+| GET | `/api/v1/articulos` | Lista todos los artículos | `200` |
+| GET | `/api/v1/articulos/{id}` | Obtiene un artículo | `200`; `404` si no existe |
+| POST | `/api/v1/articulos` | Crea un artículo | `201` con cabecera `Location` |
+| PUT | `/api/v1/articulos/{id}` | Reemplaza los datos de un artículo | `200`; `404` si no existe |
+| DELETE | `/api/v1/articulos/{id}` | Elimina un artículo | `204`; `404` si no existe |
 
 POST y PUT requieren `Content-Type: application/json`:
 
@@ -151,7 +151,7 @@ código HTTP y un mensaje descriptivo. En los errores de validación se indica c
   "title": "Bad Request",
   "status": 400,
   "detail": "Los datos enviados no son válidos",
-  "instance": "/api/articulos",
+  "instance": "/api/v1/articulos",
   "errores": {
     "nombre": "El nombre es obligatorio"
   }
@@ -168,10 +168,10 @@ artículo se elimine.
 ## Pruebas manuales
 
 1. Iniciar el servicio (paso 5).
-2. Enviar un POST a `http://localhost:8082/api/articulos` con el JSON de ejemplo
+2. Enviar un POST a `http://localhost:8082/api/v1/articulos` con el JSON de ejemplo
    (en Postman: **Body → raw → JSON**) y guardar el `id` de la respuesta.
-3. Consultar con GET `/api/articulos` y GET `/api/articulos/{id}`.
-4. Modificar con PUT `/api/articulos/{id}`.
+3. Consultar con GET `/api/v1/articulos` y GET `/api/v1/articulos/{id}`.
+4. Modificar con PUT `/api/v1/articulos/{id}`.
 5. Verificar los datos en PostgreSQL:
 
    ```sql
@@ -179,7 +179,7 @@ artículo se elimine.
    SELECT * FROM historial_articulos ORDER BY id;
    ```
 
-6. Eliminar con DELETE `/api/articulos/{id}`; un GET posterior devuelve `404`.
+6. Eliminar con DELETE `/api/v1/articulos/{id}`; un GET posterior devuelve `404`.
 7. Enviar un POST con el nombre vacío o un stock negativo para obtener `400`.
 
 ## Pruebas con Postman
@@ -199,8 +199,8 @@ del servicio. La colección crea un artículo de prueba y lo elimina al final.
 
 | Servicio | Puerto | Ruta base |
 |---|---|---|
-| ms-usuarios | 8081 | `/api/usuarios` |
-| ms-articulos | 8082 | `/api/articulos` |
-| ms-busqueda | 8083 | `/api/busqueda` |
+| ms-usuarios | 8081 | `/api/v1/usuarios` |
+| ms-articulos | 8082 | `/api/v1/articulos` |
+| ms-busqueda | 8083 | `/api/v1/busqueda` |
 
 ms-busqueda consulta este servicio para resolver las búsquedas de artículos.

@@ -15,7 +15,7 @@
             "value": "application/json"
           }
         ],
-        "url": "{{baseUrl}}/api/articulos",
+        "url": "{{baseUrl}}/api/v1/articulos",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"nombre\": \"Caja\",\n  \"descripcion\": \"Caja mediana de cartón\",\n  \"precio\": 2500.5,\n  \"stock\": 10\n}"
@@ -42,7 +42,7 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": "{{baseUrl}}/api/articulos"
+        "url": "{{baseUrl}}/api/v1/articulos"
       },
       "event": [
         {
@@ -62,7 +62,7 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": "{{baseUrl}}/api/articulos/{{articuloId}}"
+        "url": "{{baseUrl}}/api/v1/articulos/{{articuloId}}"
       },
       "event": [
         {
@@ -87,7 +87,7 @@
             "value": "application/json"
           }
         ],
-        "url": "{{baseUrl}}/api/articulos/{{articuloId}}",
+        "url": "{{baseUrl}}/api/v1/articulos/{{articuloId}}",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"nombre\": \"Caja\",\n  \"descripcion\": \"Caja mediana de cartón\",\n  \"precio\": 2500.5,\n  \"stock\": 25\n}"
@@ -116,7 +116,7 @@
             "value": "application/json"
           }
         ],
-        "url": "{{baseUrl}}/api/articulos",
+        "url": "{{baseUrl}}/api/v1/articulos",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"nombre\": \"\",\n  \"descripcion\": \"Caja mediana de cartón\",\n  \"precio\": -100,\n  \"stock\": 10\n}"
@@ -143,7 +143,7 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": "{{baseUrl}}/api/articulos/999999"
+        "url": "{{baseUrl}}/api/v1/articulos/999999"
       },
       "event": [
         {
@@ -163,7 +163,7 @@
       "request": {
         "method": "DELETE",
         "header": [],
-        "url": "{{baseUrl}}/api/articulos/{{articuloId}}"
+        "url": "{{baseUrl}}/api/v1/articulos/{{articuloId}}"
       },
       "event": [
         {
@@ -182,7 +182,7 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": "{{baseUrl}}/api/articulos/{{articuloId}}"
+        "url": "{{baseUrl}}/api/v1/articulos/{{articuloId}}"
       },
       "event": [
         {
