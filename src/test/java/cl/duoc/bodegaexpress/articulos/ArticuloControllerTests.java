@@ -1,6 +1,8 @@
 package cl.duoc.bodegaexpress.articulos;
 
 import cl.duoc.bodegaexpress.articulos.controller.ArticuloController;
+import cl.duoc.bodegaexpress.articulos.evento.EventoArticulo;
+import cl.duoc.bodegaexpress.articulos.evento.PublicadorEventos;
 import cl.duoc.bodegaexpress.articulos.exception.ManejadorErrores;
 import cl.duoc.bodegaexpress.articulos.model.Articulo;
 import cl.duoc.bodegaexpress.articulos.model.HistorialArticulo;
@@ -28,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ArticuloControllerTests {
     private ArticuloRepository repository;
     private HistorialArticuloRepository historialRepository;
+    private PublicadorEventos publicador;
     private MockMvc mvc;
     private Articulo articulo;
     private static final String BODY = """
@@ -38,8 +41,9 @@ class ArticuloControllerTests {
     void configurar() {
         repository = mock(ArticuloRepository.class);
         historialRepository = mock(HistorialArticuloRepository.class);
+        publicador = mock(PublicadorEventos.class);
         mvc = MockMvcBuilders.standaloneSetup(
-                new ArticuloController(new ArticuloService(repository, historialRepository)))
+                new ArticuloController(new ArticuloService(repository, historialRepository, publicador)))
                 .setControllerAdvice(new ManejadorErrores())
                 .build();
         articulo = new Articulo(1L, "Caja", "Caja mediana", new BigDecimal("2500.50"), 10);
@@ -53,7 +57,7 @@ class ArticuloControllerTests {
                 .andExpect(jsonPath("$[0].nombre").value("Caja"));
         mvc.perform(get("/api/v1/articulos/1")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.stock").value(10));
-        verifyNoInteractions(historialRepository);
+        verifyNoInteractions(historialRepository, publicador);
     }
 
     @Test
@@ -104,7 +108,7 @@ class ArticuloControllerTests {
         mvc.perform(delete("/api/v1/articulos/99")).andExpect(status().isNotFound());
         verify(repository, never()).save(any());
         verify(repository, never()).delete(any(Articulo.class));
-        verifyNoInteractions(historialRepository);
+        verifyNoInteractions(historialRepository, publicador);
     }
 
     @Test
@@ -117,7 +121,7 @@ class ArticuloControllerTests {
             mvc.perform(put("/api/v1/articulos/1").contentType(MediaType.APPLICATION_JSON).content(body))
                     .andExpect(status().isBadRequest());
         }
-        verifyNoInteractions(repository, historialRepository);
+        verifyNoInteractions(repository, historialRepository, publicador);
     }
 
     private void verificarHistorial(Operacion operacion, String nombre, int stock) {
@@ -129,5 +133,22 @@ class ArticuloControllerTests {
         assertEquals(nombre, registro.getNombre());
         assertEquals(stock, registro.getStock());
         assertNotNull(registro.getFecha());
+
+        ArgumentCaptor<EventoArticulo> eventoCaptor = ArgumentCaptor.forClass(EventoArticulo.class);
+        verify(publicador).publicar(eventoCaptor.capture());
+        EventoArticulo evento = eventoCaptor.getValue();
+        assertEquals(operacion, evento.operacion());
+        assertEquals(1L, evento.articuloId());
+        assertEquals(nombre, evento.nombre());
+        assertEquals(stock, evento.stock());
+        assertNotNull(evento.fecha());
+    }
+
+    @Test
+    void eventoSeSerializaComoJsonValido() {
+        EventoArticulo evento = new EventoArticulo(Operacion.ACTUALIZACION, 7L, "Caja \"grande\"\\A",
+                2, java.time.Instant.parse("2026-11-26T12:00:00Z"));
+        assertEquals("{\"operacion\":\"ACTUALIZACION\",\"articuloId\":7,\"nombre\":\"Caja \\\"grande\\\"\\\\A\""
+                + ",\"stock\":2,\"fecha\":\"2026-11-26T12:00:00Z\"}", evento.aJson());
     }
 }

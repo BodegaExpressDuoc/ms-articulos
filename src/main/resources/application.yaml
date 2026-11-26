@@ -13,6 +13,11 @@ spring:
       ddl-auto: update
     open-in-view: false
 
+sqs:
+  # URL de la cola de eventos de artículos. Vacía = no se publica (desarrollo local y tests).
+  cola-url: ${SQS_COLA_URL:}
+  region: ${AWS_REGION:us-east-1}
+
 server:
   address: ${ARTICULOS_ADDRESS:127.0.0.1}
   port: ${ARTICULOS_PORT:8082}
