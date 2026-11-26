@@ -13,6 +13,10 @@ spring:
       ddl-auto: update
     open-in-view: false
 
+gateway:
+  # Secreto que agrega el API Gateway en el header X-Gateway-Secret. Vacío = no se exige (local y tests).
+  secret: ${GATEWAY_SECRET:}
+
 sqs:
   # URL de la cola de eventos de artículos. Vacía = no se publica (desarrollo local y tests).
   cola-url: ${SQS_COLA_URL:}
