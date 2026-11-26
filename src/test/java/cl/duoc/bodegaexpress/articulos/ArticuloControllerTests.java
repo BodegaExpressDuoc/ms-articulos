@@ -49,9 +49,9 @@ class ArticuloControllerTests {
     void listarYBuscar() throws Exception {
         when(repository.findAll()).thenReturn(List.of(articulo));
         when(repository.findById(1L)).thenReturn(Optional.of(articulo));
-        mvc.perform(get("/api/articulos")).andExpect(status().isOk())
+        mvc.perform(get("/api/v1/articulos")).andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].nombre").value("Caja"));
-        mvc.perform(get("/api/articulos/1")).andExpect(status().isOk())
+        mvc.perform(get("/api/v1/articulos/1")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.stock").value(10));
         verifyNoInteractions(historialRepository);
     }
@@ -66,10 +66,10 @@ class ArticuloControllerTests {
             nuevo.setId(1L);
             return nuevo;
         });
-        mvc.perform(post("/api/articulos").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/api/v1/articulos").contentType(MediaType.APPLICATION_JSON)
                         .content(BODY.replace("{", "{\"id\":99,")))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "http://localhost/api/articulos/1"))
+                .andExpect(header().string("Location", "http://localhost/api/v1/articulos/1"))
                 .andExpect(jsonPath("$.id").value(1));
         verificarHistorial(Operacion.CREACION, "Caja", 10);
     }
@@ -78,7 +78,7 @@ class ArticuloControllerTests {
     void actualizarMantieneIdYActualizaCampos() throws Exception {
         when(repository.findById(1L)).thenReturn(Optional.of(articulo));
         when(repository.save(any(Articulo.class))).thenAnswer(i -> i.getArgument(0));
-        mvc.perform(put("/api/articulos/1").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(put("/api/v1/articulos/1").contentType(MediaType.APPLICATION_JSON)
                         .content(BODY.replace("Caja", "Bolsa").replace("2500.50", "100.25").replace("10}", "3}")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.nombre").value("Bolsa"))
@@ -91,17 +91,17 @@ class ArticuloControllerTests {
     @Test
     void eliminar() throws Exception {
         when(repository.findById(1L)).thenReturn(Optional.of(articulo));
-        mvc.perform(delete("/api/articulos/1")).andExpect(status().isNoContent());
+        mvc.perform(delete("/api/v1/articulos/1")).andExpect(status().isNoContent());
         verify(repository).delete(articulo);
         verificarHistorial(Operacion.ELIMINACION, "Caja", 10);
     }
 
     @Test
     void inexistenteDevuelve404SinEscribir() throws Exception {
-        mvc.perform(get("/api/articulos/99")).andExpect(status().isNotFound());
-        mvc.perform(put("/api/articulos/99").contentType(MediaType.APPLICATION_JSON).content(BODY))
+        mvc.perform(get("/api/v1/articulos/99")).andExpect(status().isNotFound());
+        mvc.perform(put("/api/v1/articulos/99").contentType(MediaType.APPLICATION_JSON).content(BODY))
                 .andExpect(status().isNotFound());
-        mvc.perform(delete("/api/articulos/99")).andExpect(status().isNotFound());
+        mvc.perform(delete("/api/v1/articulos/99")).andExpect(status().isNotFound());
         verify(repository, never()).save(any());
         verify(repository, never()).delete(any(Articulo.class));
         verifyNoInteractions(historialRepository);
@@ -112,9 +112,9 @@ class ArticuloControllerTests {
         for (String body : List.of("{}", BODY.replace("Caja", ""),
                 BODY.replace("2500.50", "-1"), BODY.replace("2500.50", "1.001"),
                 BODY.replace("10}", "-1}"))) {
-            mvc.perform(post("/api/articulos").contentType(MediaType.APPLICATION_JSON).content(body))
+            mvc.perform(post("/api/v1/articulos").contentType(MediaType.APPLICATION_JSON).content(body))
                     .andExpect(status().isBadRequest());
-            mvc.perform(put("/api/articulos/1").contentType(MediaType.APPLICATION_JSON).content(body))
+            mvc.perform(put("/api/v1/articulos/1").contentType(MediaType.APPLICATION_JSON).content(body))
                     .andExpect(status().isBadRequest());
         }
         verifyNoInteractions(repository, historialRepository);
