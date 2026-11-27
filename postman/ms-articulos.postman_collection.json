@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "ms-articulos",
-    "description": "Pruebas de la API de ms-articulos. Ejecutar en orden (Collection Runner): las peticiones guardan el id del artículo creado en una variable de la colección.\n\nRequiere el servicio en ejecución en {{baseUrl}}. Crea un artículo de prueba y lo elimina al final; las operaciones quedan registradas en la tabla historial_articulos.",
+    "description": "Pruebas de la API de ms-articulos. Ejecutar en orden (Collection Runner): las peticiones guardan el id del artículo creado en una variable de la colección.\n\nRequiere el servicio en ejecución en {{baseUrl}}. Crea un artículo de prueba y lo elimina al final; las operaciones quedan registradas en la tabla historial_articulos y, si SQS_COLA_URL está definida, se publican en la cola SQS.\n\nUso local: `baseUrl` = http://localhost:8082 (o el puerto de tu .env); `token` se ignora.\nUso a través del AWS API Gateway: `baseUrl` = URL del Gateway y `token` = JWT obtenido en el login de ms-usuarios (la colección lo envía como Bearer).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -206,6 +206,20 @@
     {
       "key": "articuloId",
       "value": ""
+    },
+    {
+      "key": "token",
+      "value": ""
     }
-  ]
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  }
 }

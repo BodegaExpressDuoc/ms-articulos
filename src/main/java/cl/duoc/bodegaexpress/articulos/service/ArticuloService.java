@@ -1,5 +1,7 @@
 package cl.duoc.bodegaexpress.articulos.service;
 
+import cl.duoc.bodegaexpress.articulos.evento.EventoArticulo;
+import cl.duoc.bodegaexpress.articulos.evento.PublicadorEventos;
 import cl.duoc.bodegaexpress.articulos.model.Articulo;
 import cl.duoc.bodegaexpress.articulos.model.HistorialArticulo;
 import cl.duoc.bodegaexpress.articulos.model.HistorialArticulo.Operacion;
@@ -17,11 +19,14 @@ public class ArticuloService {
 
     private final ArticuloRepository articuloRepository;
     private final HistorialArticuloRepository historialRepository;
+    private final PublicadorEventos publicador;
 
     public ArticuloService(ArticuloRepository articuloRepository,
-                           HistorialArticuloRepository historialRepository) {
+                           HistorialArticuloRepository historialRepository,
+                           PublicadorEventos publicador) {
         this.articuloRepository = articuloRepository;
         this.historialRepository = historialRepository;
+        this.publicador = publicador;
     }
 
     public List<Articulo> listarArticulos() {
@@ -41,7 +46,7 @@ public class ArticuloService {
         nuevoArticulo.setPrecio(articulo.getPrecio());
         nuevoArticulo.setStock(articulo.getStock());
         Articulo creado = articuloRepository.save(nuevoArticulo);
-        historialRepository.save(new HistorialArticulo(creado, Operacion.CREACION));
+        registrar(creado, Operacion.CREACION);
         return creado;
     }
 
@@ -53,7 +58,7 @@ public class ArticuloService {
         articuloExistente.setPrecio(articulo.getPrecio());
         articuloExistente.setStock(articulo.getStock());
         Articulo actualizado = articuloRepository.save(articuloExistente);
-        historialRepository.save(new HistorialArticulo(actualizado, Operacion.ACTUALIZACION));
+        registrar(actualizado, Operacion.ACTUALIZACION);
         return actualizado;
     }
 
@@ -61,6 +66,11 @@ public class ArticuloService {
     public void eliminarArticulo(Long id) {
         Articulo articulo = buscarPorId(id);
         articuloRepository.delete(articulo);
-        historialRepository.save(new HistorialArticulo(articulo, Operacion.ELIMINACION));
+        registrar(articulo, Operacion.ELIMINACION);
+    }
+
+    private void registrar(Articulo articulo, Operacion operacion) {
+        historialRepository.save(new HistorialArticulo(articulo, operacion));
+        publicador.publicar(EventoArticulo.de(articulo, operacion));
     }
 }

@@ -66,6 +66,21 @@ Editar `.env` y completar `ARTICULOS_DB_USERNAME` y `ARTICULOS_DB_PASSWORD`:
 | `ARTICULOS_DB_PASSWORD` | **Sí** | — | Contraseña de PostgreSQL |
 | `ARTICULOS_ADDRESS` | No | `127.0.0.1` | Dirección de red en la que escucha el servicio |
 | `ARTICULOS_PORT` | No | `8082` | Puerto HTTP del servicio |
+| `GATEWAY_SECRET` | No | vacío | Secreto que el AWS API Gateway envía en el header `X-Gateway-Secret`. Si está definido, se rechazan con 403 las peticiones que no lo traen (solo se entra por el Gateway). Vacío = no se exige |
+| `SQS_COLA_URL` | No | vacío | URL de la cola AWS SQS donde se publica un evento al crear, actualizar o eliminar un artículo. Vacía = no se publica |
+| `AWS_REGION` | No | `us-east-1` | Región de AWS de la cola SQS |
+
+Cuando `SQS_COLA_URL` está definida, cada creación, actualización o eliminación
+publica (después de confirmar la transacción) un mensaje JSON como:
+
+```json
+{"operacion":"ACTUALIZACION","articuloId":7,"nombre":"Caja","stock":2,"fecha":"2026-11-26T12:00:00Z"}
+```
+
+Lo consume la Lambda de alerta de stock bajo. Las credenciales de AWS se toman
+de la cadena por defecto del SDK (en la EC2, del perfil de instancia
+`LabInstanceProfile`). Un error al publicar solo se registra en el log y no
+afecta la respuesta de la API.
 
 El archivo se escribe con el formato `NOMBRE=valor`, sin comillas. Spring Boot lo
 carga mediante `spring.config.import`, sin dependencias adicionales, y debe
